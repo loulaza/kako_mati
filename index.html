@@ -296,9 +296,18 @@ DO NOT TAPE OVER THIS SAM!!!</div>
 
 <script>
 (function(){
-  var SALT = "W7nXT4s1LJC2hbNRju6JNw==", ITER = 310000, CHECK = "N93I4YQxXOr0Tl3BkmPn1QnLEhL5nQQLRRILZt1JUOmj6cg=";
+  var SALT = "DdYWVRBXIeVLWm+KqpfnOg==", ITER = 310000, CHECK = "rEJioGEviaPGszDZJtzR7PZrk81F8XFgrp8F7gIt4fMOAMI=", BUILD = "71fb650eed";
   var SN = "evil_billie_81";
-  var next = /[?&]next=bible\b/.test(location.search) ? "bible.html" : "home.html";
+  var next = (/[?&]next=bible\b/.test(location.search) ? "bible.html" : "home.html") + "?v=" + BUILD;
+
+  // If the browser shows an old copy of this page after an update, swap in the current one.
+  fetch("build.txt?" + Date.now(), { cache: "no-store" }).then(function(r){ return r.ok ? r.text() : ""; }).then(function(v){
+    v = v.trim();
+    if (v && v !== BUILD && !new RegExp("[?&]v=" + v + "\\b").test(location.search)) {
+      var q = location.search.replace(/^\?/, "").replace(/(^|&)v=[^&]*/g, "").replace(/^&/, "");
+      location.replace("index.html?v=" + v + (q ? "&" + q : ""));
+    }
+  }).catch(function(){});
   var $ = function(id){ return document.getElementById(id); };
   var b64 = function(s){ return Uint8Array.from(atob(s), function(c){ return c.charCodeAt(0); }); };
   var toB64 = function(buf){ var s = "", b = new Uint8Array(buf); for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s); };
