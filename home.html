@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Kako Mati</title>
+<style>html,body{margin:0;height:100%;background:#000;color:#9aa6bf;font:14px/1.5 system-ui,sans-serif}.l{position:fixed;inset:0;display:grid;place-items:center;opacity:0;animation:f .3s .8s forwards}@keyframes f{to{opacity:1}}</style>
+</head><body><div class="l">Loading…</div>
+<script>
+(async function(){
+  var PAGE = "home";
+  var raw = null; try { raw = sessionStorage.getItem("km-key") || localStorage.getItem("km-key"); } catch (e) {}
+  if (!raw) { location.replace("index.html?next=" + PAGE); return; }
+  try {
+    var key = await crypto.subtle.importKey("raw", Uint8Array.from(atob(raw), function(c){ return c.charCodeAt(0); }), "AES-GCM", false, ["decrypt"]);
+    var open = async function(p){ var r = await fetch(p, { cache: "no-cache" }); if (!r.ok) throw new Error(p); var b = new Uint8Array(await r.arrayBuffer()); return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(0, 12) }, key, b.slice(12))); };
+    var html = new TextDecoder().decode(await open("vault/" + PAGE + ".bin"));
+    var names = Array.from(new Set(html.match(/img\/[\w-]+\.jpg/g) || []));
+    var urls = await Promise.all(names.map(async function(n){
+      var u = await open("vault/" + n.replace(/\.jpg$/, ".bin")), s = "";
+      for (var i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+      return "data:image/jpeg;base64," + btoa(s);
+    }));
+    names.forEach(function(n, i){ html = html.split(n).join(urls[i]); });
+    try { sessionStorage.setItem("km-key", raw); } catch (e) {}
+    document.open(); document.write(html); document.close();
+  } catch (e) {
+    try { sessionStorage.removeItem("km-key"); localStorage.removeItem("km-key"); } catch (_) {}
+    location.replace("index.html?next=" + PAGE);
+  }
+})();
+</script></body></html>

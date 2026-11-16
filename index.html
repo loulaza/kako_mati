@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sign On</title>
+<style>
+/* A 1998 desktop: teal wallpaper, grey bevelled window, navy title bar. */
+:root{
+  --desk:#0a7d7b; --face:#c3c3c3; --hi:#fff; --lo:#828282; --dk:#000;
+  --bar1:#000a7e; --bar2:#1e86d6; --ink:#000; --link:#0000c8;
+  --ui:Tahoma,"MS Sans Serif","Microsoft Sans Serif",Geneva,Verdana,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--desk);color:var(--ink);font:13px/1.35 var(--ui);-webkit-font-smoothing:none;display:flex;flex-direction:column;overflow:hidden}
+.desk{position:relative;flex:1;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));overflow:auto}
+
+/* bevels */
+.raised{background:var(--face);box-shadow:inset -1px -1px var(--dk),inset 1px 1px var(--hi),inset -2px -2px var(--lo),inset 2px 2px #dfdfdf}
+.sunken{background:#fff;box-shadow:inset -1px -1px var(--hi),inset 1px 1px var(--lo),inset -2px -2px #dfdfdf,inset 2px 2px var(--dk)}
+
+.win{position:relative;z-index:10;width:min(300px,100%);padding:3px}
+.bar{display:flex;align-items:center;gap:6px;height:22px;padding:0 3px 0 5px;background:linear-gradient(90deg,var(--bar1),var(--bar2));color:#fff;font-weight:bold;font-size:12px;user-select:none}
+.bar .ttl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .ic{width:16px;height:16px;flex:none}
+.bar .ctl{width:16px;height:14px;display:grid;place-items:center;font:bold 10px/1 var(--ui);color:#000}
+.body{padding:10px}
+
+.art{position:relative;height:96px;overflow:hidden;display:flex;align-items:center;gap:12px;padding:0 14px;
+  background:linear-gradient(115deg,transparent 0 58%,rgba(255,255,255,.45) 58% 64%,transparent 64%),#efe6bd}
+/* flat eye: solid rings, like a mati charm */
+.art .mark{width:40px;height:40px;flex:none;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.45))}
+.art .word{color:#1d3a0f}
+.art .word b{display:block;font:italic 900 19px/1.05 "Arial Black",Arial,sans-serif;letter-spacing:-.01em}
+.art .word span{font-size:10px;letter-spacing:.22em;color:#5b6e33}
+.art .ver{position:absolute;right:8px;top:6px;color:#8a8a5c;font-size:10px}
+
+form{display:grid;gap:8px;margin-top:12px}
+label{display:block;margin-bottom:3px}
+.field{display:flex}
+.field input{flex:1;min-width:0;height:24px;border:0;padding:3px 5px;font:inherit;color:#000;outline:none}
+.field .drop{width:18px;height:24px;display:grid;place-items:center;font-size:8px}
+.checks{display:flex;gap:14px;flex-wrap:wrap;margin-top:2px}
+.checks label{display:flex;align-items:center;gap:5px;margin:0;cursor:pointer}
+.checks input{appearance:none;-webkit-appearance:none;width:13px;height:13px;margin:0;flex:none;cursor:pointer}
+.checks input:checked{background-image:linear-gradient(45deg,transparent 40%,#000 40% 55%,transparent 55%),linear-gradient(-45deg,transparent 45%,#000 45% 58%,transparent 58%);background-size:8px 8px,8px 8px;background-position:2px 3px,4px 1px;background-repeat:no-repeat}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+.btn{min-width:75px;height:24px;padding:0 10px;border:0;font:inherit;color:#000;cursor:pointer}
+.btn:active{box-shadow:inset 1px 1px var(--dk),inset -1px -1px var(--hi),inset 2px 2px var(--lo)}
+.btn.default{outline:1px solid #000;outline-offset:0}
+.btn:focus-visible,.checks input:focus-visible{outline:1px dotted #000;outline-offset:-5px}
+.link{background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer}
+
+.status{margin-top:10px;height:20px;padding:2px 6px;font-size:11px;color:#222;display:flex;align-items:center}
+
+/* sign-on progress */
+.steps{display:grid;gap:10px;margin:16px 4px 6px}
+.step{display:flex;align-items:center;gap:10px;color:#555}
+.step i{width:14px;height:14px;flex:none}
+.step.on{color:#000;font-weight:bold}
+.step.done{color:#000}
+.step.done i{background:linear-gradient(45deg,transparent 40%,#0a6 40% 56%,transparent 56%) 0 2px/9px 9px no-repeat,linear-gradient(-45deg,transparent 44%,#0a6 44% 60%,transparent 60%) 4px 0/10px 10px no-repeat}
+.step.on i{border-radius:50%;border:2px solid #9aa;border-top-color:#000a7e;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* message box */
+.shade{position:fixed;inset:0;display:grid;place-items:center;padding:16px;z-index:10}
+.shade[hidden]{display:none}
+.msg{width:min(320px,100%);padding:3px}
+.msg .inner{display:flex;gap:14px;padding:16px 14px 6px;align-items:flex-start}
+.msg .x{width:32px;height:32px;flex:none;border-radius:50%;background:#e00;color:#fff;font:bold 20px/32px Arial,sans-serif;text-align:center;box-shadow:inset -2px -2px rgba(0,0,0,.35)}
+.msg .x.info{background:#1e5fd6;font-family:Georgia,serif;font-style:italic}
+.msg .actions{display:flex;justify-content:center;padding:10px 0 8px}
+
+/* desktop icons */
+.icons{position:absolute;left:10px;top:12px;display:grid;grid-auto-flow:row;gap:14px;width:80px;z-index:0}
+.icon{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.icon svg{width:34px;height:34px;display:block}
+.icon span{color:#fff;font-size:11px;line-height:1.2;padding:1px 2px;text-shadow:1px 1px 0 #000;overflow-wrap:anywhere}
+@media (max-width:600px),(max-height:520px){.icons{display:none}}
+
+/* background apps */
+.bgs{position:absolute;inset:0;overflow:hidden;pointer-events:none;user-select:none}
+.bar.off{background:linear-gradient(90deg,#808080,#b4b4b4);color:#d8d8d8}
+.app{position:absolute;padding:3px}
+
+.amp{left:calc(50% - 470px);top:calc(50% - 290px);width:276px;z-index:2}
+.amp .bar .note{font-size:12px;line-height:1;flex:none}
+.deck{background:#1c1e23;padding:8px;display:grid;gap:7px;color:#22e05a;font:11px/1.2 "Courier New",Courier,monospace}
+.lcd{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#000;padding:6px 8px;box-shadow:inset 1px 1px #000,inset -1px -1px #3a3d44}
+.time{font:bold 24px/1 "Courier New",Courier,monospace;color:#22e05a;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.time::before{content:"▶\FE0E";font-size:10px;vertical-align:middle;margin-right:6px}
+.eq{display:flex;align-items:flex-end;gap:2px;height:24px}
+.eq i{width:4px;height:100%;background:#22e05a;transform-origin:bottom;animation:eq .8s ease-in-out infinite alternate}
+.eq i:nth-child(3n){animation-duration:.55s}.eq i:nth-child(4n+1){animation-duration:1.1s}.eq i:nth-child(5n+2){animation-duration:.7s;animation-delay:-.3s}
+.eq i:nth-child(2n){animation-delay:-.45s}.eq i:nth-child(7n){animation-duration:.95s;animation-delay:-.2s}
+@keyframes eq{0%{transform:scaleY(.15)}100%{transform:scaleY(1)}}
+.marquee{overflow:hidden;white-space:nowrap;background:#000;padding:4px 6px}
+.marquee span{display:inline-block;padding-left:100%;animation:mq 14s linear infinite}
+@keyframes mq{to{transform:translateX(-100%)}}
+.specs{display:flex;justify-content:space-between;color:#7fd99a;font-size:10px}
+.seek{height:6px;background:#2c2f36;box-shadow:inset 1px 1px #000}
+.seek i{display:block;height:100%;width:0;background:#22e05a}
+.ctrls{display:flex;gap:3px}
+.ctrls span{width:26px;height:16px;display:grid;place-items:center;font:9px/1 var(--ui);color:#000}
+
+.notes{left:calc(50% + 140px);top:calc(50% + 0px);width:300px;z-index:4}
+.menu{display:flex;gap:12px;padding:3px 6px;font-size:12px;background:var(--face)}
+.paper{margin:0 2px 2px;padding:6px 8px;height:178px;overflow:hidden;font:12px/1.45 "Courier New",Courier,monospace;white-space:pre;color:#000}
+
+@media (max-width:760px){
+  .amp{left:-24px;top:10px;transform:scale(.85);transform-origin:top left}
+  .notes{left:auto;top:auto;right:-90px;bottom:10px;transform:scale(.85);transform-origin:bottom right}
+}
+@media (max-height:560px){.notes{display:none}}
+@media (prefers-reduced-motion:reduce){.eq i,.marquee span{animation:none}.eq i{transform:scaleY(.6)}}
+
+/* buddy list */
+.buddy{left:calc(50% + 175px);top:calc(50% - 300px);width:196px;z-index:3}
+.buddy .bar .ic{width:15px;height:15px;flex:none}
+.bhead{display:flex;align-items:center;gap:6px;margin:2px 2px 0;padding:5px 7px;background:#efe6bd;color:#1d3a0f;font:italic 900 12px/1 "Arial Black",Arial,sans-serif}
+.bhead svg{width:18px;height:18px;flex:none}
+.tabs{display:flex;gap:2px;padding:4px 4px 0;font-size:11px}
+.tabs span{padding:2px 8px;background:var(--face);box-shadow:inset 1px 1px var(--hi),inset -1px 0 var(--dk)}
+.tabs span.on{font-weight:bold;padding-bottom:4px;margin-bottom:-2px;position:relative}
+.blist{margin:0 2px 2px;height:236px;overflow:hidden;padding:5px 6px;font-size:12px;line-height:1.55;color:#000}
+.grp{font-weight:bold;white-space:nowrap}
+.grp::before{content:"▾ ";font-size:9px}
+.grp.closed::before{content:"▸ "}
+.bud{padding-left:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bud.away::after{content:"";display:inline-block;width:7px;height:9px;margin-left:5px;background:#f6e27a;border:1px solid #8a7a20;vertical-align:-1px}
+.bud.idle{color:#9a9a9a;font-style:italic;transition:color .4s}
+.bud .idl{font-size:11px}
+.bud.idle.woke{color:#000;font-style:normal}
+.bud.idle.woke .idl{visibility:hidden}
+.bbtns{display:flex;justify-content:space-around;padding:4px 2px 3px}
+.bbtns span{min-width:46px;height:20px;display:grid;place-items:center;font-size:11px}
+@media (max-width:760px),(max-height:560px){.buddy{display:none}}
+
+/* Rose’s card game */
+.sol{left:calc(50% - 540px);top:calc(50% - 170px);width:356px;z-index:1}
+.felt{margin:2px;padding:8px;background:#0b7a2e;display:grid;gap:10px;zoom:1.3}
+.toprow{display:flex;gap:6px}
+.toprow .gap{flex:1}
+.tab{display:flex;gap:6px;align-items:flex-start;height:92px}
+.col{position:relative;width:30px;height:100%}
+.card{position:absolute;left:0;width:30px;height:42px;border-radius:3px;background:#fff;border:1px solid #000;font:bold 10px/1 Arial,sans-serif;color:#000;padding:2px 0 0 2px}
+.toprow .card{position:static}
+.card.r{color:#d00}
+.card.back{background:#091878;border-color:#000;box-shadow:inset 0 0 0 2px #fff;padding:0}
+.card.back::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#000;box-shadow:0 0 0 2px #5F8FAB,0 0 0 4px #fff,0 0 0 6px #091878}
+.slot{width:30px;height:42px;border:1px solid #0a5c22;border-radius:3px;box-shadow:inset 0 0 0 1px #2a9a4c}
+.solbar{display:flex;justify-content:space-between;margin:0 2px 2px;padding:2px 6px;font-size:11px}
+@media (max-width:760px),(max-height:640px){.sol{display:none}}
+
+/* taskbar */
+.task{display:flex;align-items:center;gap:6px;height:calc(32px + env(safe-area-inset-bottom,0px));padding:3px max(4px,env(safe-area-inset-right,0px)) calc(3px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px));background:var(--face);box-shadow:inset 0 1px #dfdfdf,inset 0 2px var(--hi)}
+.start{display:flex;align-items:center;gap:5px;height:24px;padding:0 8px;font-weight:bold}
+.start .ic{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle closest-side,#000 0 22%,#091878 23%,#345491 55%,#5F8FAB 80%,#304856 100%)}
+.tbtn{height:24px;padding:0 10px;display:flex;align-items:center;gap:5px;min-width:0;max-width:160px;white-space:nowrap;overflow:hidden;box-shadow:inset 1px 1px var(--dk),inset -1px -1px var(--hi),inset 2px 2px var(--lo);background:#dcdcdc;font-weight:bold}
+.tbtn.idle{font-weight:normal;background:var(--face);box-shadow:inset -1px -1px var(--dk),inset 1px 1px var(--hi),inset -2px -2px var(--lo),inset 2px 2px #dfdfdf}
+@media (max-width:600px){.tbtn.idle{display:none}}
+.clock{margin-left:auto;height:24px;padding:0 10px;display:flex;align-items:center;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px var(--lo),inset -1px -1px var(--hi)}
+@media (prefers-reduced-motion:reduce){.step.on i{animation:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="pickle" viewBox="0 0 32 32"><g transform="rotate(-38 16 16)"><rect x="10" y="1.5" width="12" height="29" rx="6" fill="#4e8a2a" stroke="#1d3a0f" stroke-width="1.6"/><rect x="12.4" y="5" width="2.6" height="17" rx="1.3" fill="#a5d063"/><circle cx="18.2" cy="7.5" r="1.1" fill="#2c5a17"/><circle cx="19" cy="13.5" r="1.1" fill="#2c5a17"/><circle cx="17.4" cy="19" r="1.1" fill="#2c5a17"/><circle cx="18.6" cy="24.5" r="1.1" fill="#2c5a17"/><circle cx="14.2" cy="26" r="1.1" fill="#2c5a17"/><circle cx="15.6" cy="10.5" r="1" fill="#2c5a17"/></g></symbol></svg>
+<div class="desk">
+  <div class="bgs" aria-hidden="true">
+    <div class="icons">
+      <div class="icon"><svg viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="4" y="3" width="24" height="18" fill="#c3c3c3"/><rect x="4" y="3" width="24" height="18" fill="none" stroke="#000"/><rect x="7" y="6" width="18" height="12" fill="#0a7d7b"/><rect x="7" y="6" width="18" height="12" fill="none" stroke="#3a3a3a"/><rect x="12" y="21" width="8" height="3" fill="#828282"/><rect x="6" y="24" width="20" height="5" fill="#c3c3c3" stroke="#000"/><rect x="18" y="26" width="5" height="1" fill="#2bd42b"/></svg><span>My Computer</span></div>
+      <div class="icon"><svg viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="7" y="7" width="18" height="3" fill="#dcdcdc" stroke="#000"/><rect x="13" y="4" width="6" height="3" fill="#dcdcdc" stroke="#000"/><path d="M9 10h14l-2 19H11z" fill="#c3c3c3" stroke="#000"/><path d="M13 13v13M16 13v13M19 13v13" stroke="#828282"/><rect x="11" y="5" width="5" height="3" fill="#fff" stroke="#000" transform="rotate(-20 13 6)"/></svg><span>Recycle Bin</span></div>
+      <div class="icon"><svg viewBox="0 0 32 32"><use href="#pickle"/></svg><span>Cinema Pickle Messenger</span></div>
+      <div class="icon"><svg viewBox="0 0 32 32" shape-rendering="crispEdges"><path d="M3 8h10l2 3h14v17H3z" fill="#e8c34a" stroke="#000"/><path d="M3 13h26v15H3z" fill="#f6dc6e" stroke="#000"/><rect x="9" y="16" width="10" height="8" fill="#fff" stroke="#000" transform="rotate(-6 14 20)"/><rect x="11" y="18" width="6" height="4" fill="#5F8FAB" transform="rotate(-6 14 20)"/></svg><span>Family Photos</span></div>
+      <div class="icon"><svg viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="3" y="7" width="26" height="18" fill="#222" stroke="#000"/><path d="M5 9h2v2H5zM5 13h2v2H5zM5 17h2v2H5zM5 21h2v2H5zM25 9h2v2h-2zM25 13h2v2h-2zM25 17h2v2h-2zM25 21h2v2h-2z" fill="#fff"/><rect x="9" y="9" width="14" height="14" fill="#5F8FAB"/><path d="M14 12l6 4-6 4z" fill="#fff"/></svg><span>jason_vhs.avi</span></div>
+      <div class="icon"><svg viewBox="0 0 32 32" shape-rendering="crispEdges"><path d="M7 3h13l6 6v20H7z" fill="#fff" stroke="#000"/><path d="M20 3v6h6" fill="#dcdcdc" stroke="#000"/><path d="M10 13h12M10 16h12M10 19h12M10 22h8" stroke="#1e3fa0"/><rect x="5" y="22" width="9" height="8" fill="#1e3fa0" stroke="#000"/><path d="M7 24l1 4 1.5-3 1.5 3 1-4" stroke="#fff" fill="none"/></svg><span>homework.doc</span></div>
+      <div class="icon"><svg viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="2" y="5" width="28" height="22" fill="#000" stroke="#c3c3c3"/><rect x="2" y="5" width="28" height="4" fill="#000a7e"/><rect x="25" y="6" width="3" height="2" fill="#c3c3c3"/><path d="M5 13h3M5 13v6M5 19h3" stroke="#fff"/><path d="M10 15h1v1h-1zM10 18h1v1h-1z" fill="#fff"/><path d="M13 13l3 3-3 3" stroke="#fff" fill="none"/><rect x="18" y="18" width="4" height="1" fill="#fff"/></svg><span>WOLF3D.EXE</span></div>
+    </div>
+    <div class="app amp raised">
+      <div class="bar off"><span class="note">♫</span><span class="ttl">2. Our Lady Peace - Automatic Flower</span><span class="ctl raised">_</span><span class="ctl raised">×</span></div>
+      <div class="deck">
+        <div class="lcd"><span class="time" id="amp-time">1:07</span><span class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+        <div class="marquee"><span>*** 2. Our Lady Peace - Automatic Flower ***</span></div>
+        <div class="specs"><span>128 kbps</span><span>44 kHz</span><span>stereo</span></div>
+        <div class="seek"><i id="amp-seek"></i></div>
+        <div class="ctrls"><span class="raised">|◀︎</span><span class="raised">▶︎</span><span class="raised">❚❚</span><span class="raised">■</span><span class="raised">▶︎|</span></div>
+      </div>
+    </div>
+
+    <div class="app buddy raised">
+      <div class="bar off"><svg class="ic" viewBox="0 0 32 32"><use href="#pickle"/></svg><span class="ttl">Buddy List</span><span class="ctl raised">_</span><span class="ctl raised">×</span></div>
+      <div class="bhead"><svg viewBox="0 0 32 32"><use href="#pickle"/></svg>Cinema Pickle</div>
+      <div class="tabs"><span class="on">Online</span><span>List Setup</span></div>
+      <div class="blist sunken">
+        <div class="grp">Buddies (4/6)</div>
+        <div class="bud">Cass_Attack_79</div>
+        <div class="bud away">grungegrrl_1981</div>
+        <div class="bud">TheRumbler14</div>
+        <div class="bud idle" id="jason">jason_g_75 <span class="idl">(idle 23d)</span></div>
+        <div class="grp">Family (2/2)</div>
+        <div class="bud">Deadman_Sam</div>
+        <div class="bud">nice_twin_james</div>
+        <div class="grp closed">Offline (3)</div>
+      </div>
+      <div class="bbtns"><span class="raised">IM</span><span class="raised">Chat</span><span class="raised">Info</span></div>
+    </div>
+
+    <div class="app sol raised">
+      <div class="bar off"><span class="ttl">Solitaire</span><span class="ctl raised">_</span><span class="ctl raised">×</span></div>
+      <div class="menu"><span>Game</span><span>Help</span></div>
+      <div class="felt">
+        <div class="toprow"><span class="card back"></span><span class="card">7♣</span><span class="gap"></span><span class="card r">3♥</span><span class="card">2♣</span><span class="card">A♠</span><span class="slot"></span></div>
+        <div class="tab"><div class="col"><span class="card" style="top:0px">K♠</span><span class="card r" style="top:12px">Q♥</span><span class="card" style="top:24px">J♣</span></div><div class="col"><span class="card r" style="top:0px">9♦</span><span class="card" style="top:12px">8♠</span></div><div class="col"><span class="card back" style="top:0px"></span><span class="card r" style="top:4px">7♥</span></div><div class="col"><span class="card back" style="top:0px"></span><span class="card" style="top:4px">Q♠</span><span class="card r" style="top:16px">J♦</span><span class="card" style="top:28px">10♣</span><span class="card r" style="top:40px">9♥</span></div><div class="col"><span class="card back" style="top:0px"></span><span class="card back" style="top:4px"></span><span class="card" style="top:8px">5♣</span></div><div class="col"><span class="card back" style="top:0px"></span><span class="card back" style="top:4px"></span><span class="card back" style="top:8px"></span><span class="card back" style="top:12px"></span><span class="card r" style="top:16px">K♥</span><span class="card" style="top:28px">Q♣</span></div><div class="col"><span class="card back" style="top:0px"></span><span class="card back" style="top:4px"></span><span class="card back" style="top:8px"></span><span class="card back" style="top:12px"></span><span class="card back" style="top:16px"></span><span class="card r" style="top:20px">6♦</span><span class="card" style="top:32px">5♠</span><span class="card r" style="top:44px">4♥</span></div></div>
+      </div>
+      <div class="solbar sunken"><span>Score: 47</span><span>Time: 312</span></div>
+    </div>
+
+    <div class="app notes raised">
+      <div class="bar off"><span class="ttl">mixtape_for_jason.txt - Notes</span><span class="ctl raised">_</span><span class="ctl raised">×</span></div>
+      <div class="menu"><span>File</span><span>Edit</span><span>Search</span><span>Help</span></div>
+      <div class="paper sunken">MIXTAPE FOR JASON  (side A)
+
+1. Bran Van 3000 - Drinking in L.A.
+2. Our Lady Peace - Automatic Flower
+3. Snow - Informer
+4. The Gandharvas - First Day of Spring
+5. Len - Steal My Sunshine
+6. Everclear - So Much for the Afterglow
+7. Matthew Good Band - Apparitions
+
+side B: ask cass
+
+DO NOT TAPE OVER THIS SAM!!!</div>
+    </div>
+  </div>
+
+  <section class="win raised" aria-labelledby="win-title">
+    <div class="bar"><svg class="ic" viewBox="0 0 32 32" aria-hidden="true"><use href="#pickle"/></svg><span class="ttl" id="win-title">Sign On</span><span class="ctl raised" aria-hidden="true">_</span><span class="ctl raised" aria-hidden="true">×</span></div>
+    <div class="body">
+      <div class="art sunken" aria-hidden="true">
+        <span class="ver">v1.998</span>
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><use href="#pickle"/></svg>
+        <div class="word"><b>Cinema Pickle</b><span>MESSENGER</span></div>
+      </div>
+
+      <form id="f" autocomplete="off" novalidate>
+        <div>
+          <label for="sn">Screen Name</label>
+          <div class="field sunken"><input id="sn" name="sn" value="Evil_Billie_81" autocapitalize="off" autocorrect="off" spellcheck="false"><span class="drop raised" aria-hidden="true">▼</span></div>
+        </div>
+        <div>
+          <label for="pw">Password</label>
+          <div class="field sunken"><input id="pw" name="pw" type="password" autocomplete="current-password"></div>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="save" class="sunken"> Save password</label>
+        </div>
+        <div class="row">
+          <button type="button" class="link" id="help">Help</button>
+          <button type="submit" class="btn default raised" id="go">Sign On</button>
+        </div>
+      </form>
+
+      <div class="steps" id="steps" hidden aria-live="polite">
+        <div class="step" data-s="0"><i></i>1. Connecting…</div>
+        <div class="step" data-s="1"><i></i>2. Verifying password…</div>
+        <div class="step" data-s="2"><i></i>3. Starting services…</div>
+      </div>
+
+      <div class="status sunken" id="st">Ready</div>
+    </div>
+  </section>
+</div>
+
+<div class="shade" id="box" hidden>
+  <div class="msg raised" role="alertdialog" aria-modal="true" aria-labelledby="box-t" aria-describedby="box-m">
+    <div class="bar"><span class="ttl" id="box-t">Sign On</span><span class="ctl raised" aria-hidden="true">×</span></div>
+    <div class="inner"><span class="x" id="box-i" aria-hidden="true">×</span><p id="box-m" style="margin:6px 0 0"></p></div>
+    <div class="actions"><button type="button" class="btn raised default" id="box-ok">OK</button></div>
+  </div>
+</div>
+
+<div class="task">
+  <span class="start raised"><i class="ic" aria-hidden="true"></i>Start</span>
+  <span class="tbtn"><svg class="ic" viewBox="0 0 32 32" aria-hidden="true" style="width:14px;height:14px;flex:none"><use href="#pickle"/></svg>Sign On</span>
+  <span class="tbtn idle" aria-hidden="true">♫ Automatic Flower</span>
+  <span class="tbtn idle" aria-hidden="true">mixtape_for_jason.txt</span>
+  <span class="tbtn idle" aria-hidden="true"><svg viewBox="0 0 32 32" style="width:14px;height:14px;flex:none" shape-rendering="crispEdges"><rect x="2" y="5" width="28" height="22" fill="#000" stroke="#c3c3c3"/><rect x="2" y="5" width="28" height="4" fill="#000a7e"/><path d="M6 14h3M6 14v6M6 20h3M12 16h1v1h-1zM12 19h1v1h-1zM15 14l3 3-3 3" stroke="#fff" fill="none"/></svg>WOLF3D</span>
+  <span class="tbtn idle" aria-hidden="true">Solitaire</span>
+  <span class="clock" id="clock">12:00 AM</span>
+</div>
+
+<script>
+(function(){
+  var SALT = "WZRzY8zWaJHZKHOlyZcEDA==", ITER = 310000, CHECK = "gK6x0JpcWcGp3wjm9IjiTifnC+Du8l+dgm5dSMdlNvS7rLo=";
+  var SN = "evil_billie_81";
+  var next = /[?&]next=bible\b/.test(location.search) ? "bible.html" : "home.html";
+  var $ = function(id){ return document.getElementById(id); };
+  var b64 = function(s){ return Uint8Array.from(atob(s), function(c){ return c.charCodeAt(0); }); };
+  var toB64 = function(buf){ var s = "", b = new Uint8Array(buf); for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s); };
+  var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+  // Already signed on? Go straight in.
+  try {
+    if (!/signedoff/.test(location.search) && (sessionStorage.getItem("km-key") || localStorage.getItem("km-key"))) { location.replace(next); return; }
+  } catch (e) {}
+
+  // the player keeps playing in the background
+  var t = 67, len = 286;
+  function play(){
+    var m = Math.floor(t / 60), s = t % 60;
+    $("amp-time").textContent = m + ":" + (s < 10 ? "0" : "") + s;
+    $("amp-seek").style.width = (t / len * 100) + "%";
+    t = t >= len ? 0 : t + 1;
+  }
+  play(); setInterval(play, 1000);
+
+  // someone on the buddy list stirs now and then
+  (function(){ var j = $("jason"); setInterval(function(){ j.classList.add("woke"); setTimeout(function(){ j.classList.remove("woke"); }, 1500); }, 21000); })();
+
+  // clock
+  function tick(){ var d = new Date(), h = d.getHours(), m = d.getMinutes(); $("clock").textContent = ((h % 12) || 12) + ":" + (m < 10 ? "0" : "") + m + " " + (h < 12 ? "AM" : "PM"); }
+  tick(); setInterval(tick, 15000);
+
+  // message box
+  var lastFocus = null;
+  function msg(text, info){
+    lastFocus = document.activeElement;
+    $("box-m").textContent = text;
+    $("box-i").className = "x" + (info ? " info" : ""); $("box-i").textContent = info ? "i" : "×";
+    $("box").hidden = false; $("box-ok").focus();
+  }
+  function closeMsg(){ $("box").hidden = true; if (lastFocus) lastFocus.focus(); }
+  $("box-ok").addEventListener("click", closeMsg);
+  addEventListener("keydown", function(e){ if (!$("box").hidden && (e.key === "Escape" || e.key === "Enter")) { e.preventDefault(); closeMsg(); } });
+  $("help").addEventListener("click", function(){ msg("Screen names on this network are invite only. Ask Louis or Mara for the password.", true); });
+
+  // sign on
+  var busy = false;
+  $("f").addEventListener("submit", async function(e){
+    e.preventDefault(); if (busy) return;
+    var sn = $("sn").value.toLowerCase().replace(/\s+/g, "");
+    var pw = $("pw").value.trim().toLowerCase().replace(/\s+/g, " ");
+    if (!pw) { msg("Please enter your password."); $("pw").focus(); return; }
+    if (sn !== SN) { msg("The screen name you entered is not registered."); return; }
+    if (!(window.crypto && crypto.subtle)) { msg("This browser can’t open the site. Try a current version of Safari, Chrome or Firefox."); return; }
+    busy = true; $("go").disabled = true; $("st").textContent = "Signing on…";
+    $("f").hidden = true; $("steps").hidden = false;
+    var steps = document.querySelectorAll(".step");
+    function setStep(i){ steps.forEach(function(s, j){ s.className = "step" + (j < i ? " done" : j === i ? " on" : ""); }); }
+    try {
+      setStep(0); await wait(600);
+      setStep(1);
+      var base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+      var key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(SALT), iterations: ITER, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+      var chk = b64(CHECK);
+      await crypto.subtle.decrypt({ name: "AES-GCM", iv: chk.slice(0, 12) }, key, chk.slice(12));
+      var raw = toB64(await crypto.subtle.exportKey("raw", key));
+      try { sessionStorage.setItem("km-key", raw); if ($("save").checked) localStorage.setItem("km-key", raw); else localStorage.removeItem("km-key"); } catch (_) {}
+      await wait(450); setStep(2); $("st").textContent = "Starting services…";
+      await wait(650); setStep(3); $("st").textContent = "Online";
+      await wait(250);
+      location.replace(next);
+    } catch (err) {
+      busy = false; $("go").disabled = false;
+      $("steps").hidden = true; $("f").hidden = false; $("st").textContent = "Ready";
+      $("pw").value = ""; msg("Invalid password. Please try again.");
+    }
+  });
+
+  $("pw").focus();
+})();
+</script>
+</body>
+</html>
