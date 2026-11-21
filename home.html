@@ -8,7 +8,7 @@
 (async function(){
   var PAGE = "home";
   var raw = null; try { raw = sessionStorage.getItem("km-key") || localStorage.getItem("km-key"); } catch (e) {}
-  if (!raw) { location.replace("index.html?v=6b982e6909&next=" + PAGE); return; }
+  if (!raw) { location.replace("index.html?v=45f69e658a&next=" + PAGE); return; }
   try {
     var key = await crypto.subtle.importKey("raw", Uint8Array.from(atob(raw), function(c){ return c.charCodeAt(0); }), "AES-GCM", false, ["decrypt"]);
     var open = async function(p){ var r = await fetch(p, { cache: "no-cache" }); if (!r.ok) throw new Error(p); var b = new Uint8Array(await r.arrayBuffer()); return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(0, 12) }, key, b.slice(12))); };
@@ -24,7 +24,7 @@
     document.open(); document.write(html); document.close();
   } catch (e) {
     try { sessionStorage.removeItem("km-key"); localStorage.removeItem("km-key"); } catch (_) {}
-    location.replace("index.html?v=6b982e6909&next=" + PAGE);
+    location.replace("index.html?v=45f69e658a&next=" + PAGE);
   }
 })();
 </script></body></html>
